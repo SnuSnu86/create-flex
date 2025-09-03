@@ -56,17 +56,16 @@ export const DesignCanvas = ({
     const dragState = dragStateRef.current;
     if (!dragState.isDragging || !dragState.element || !canvasRef.current) return;
 
-    // Get mouse position relative to canvas
-    const mouseCanvasPos = getCanvasCoordinates(clientX, clientY);
+    // Get canvas position
+    const canvasRect = canvasRef.current.getBoundingClientRect();
     
-    // Calculate new component position (mouse position minus click offset)
+    // Calculate new component position: mouse position minus where we clicked within the element
     const newPosition = {
-      x: mouseCanvasPos.x - dragState.dragOffset.x,
-      y: mouseCanvasPos.y - dragState.dragOffset.y
+      x: clientX - canvasRect.left - dragState.dragOffset.x,
+      y: clientY - canvasRect.top - dragState.dragOffset.y
     };
     
     // Apply constraints to keep component within canvas
-    const canvasRect = canvasRef.current.getBoundingClientRect();
     const elementRect = dragState.element.getBoundingClientRect();
     
     const constrainedPosition = {
@@ -79,13 +78,13 @@ export const DesignCanvas = ({
     dragState.element.style.zIndex = '1000';
     dragState.element.style.filter = 'drop-shadow(0 20px 25px rgba(0,0,0,0.3))';
     
-    // Update React state immediately to prevent position jumping
+    // Update React state immediately for persistence
     if (dragState.componentId) {
       onUpdateComponent(dragState.componentId, {
         position: constrainedPosition
       });
     }
-  }, [getCanvasCoordinates, onUpdateComponent]);
+  }, [onUpdateComponent]);
 
   // Optimized mouse move handler using RAF
   const handlePointerMove = useCallback((e: PointerEvent) => {
@@ -109,21 +108,21 @@ export const DesignCanvas = ({
         // Reset element styles with smooth transition back to current state position
         dragState.element.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
         dragState.element.style.transform = `translate3d(${finalPosition.x}px, ${finalPosition.y}px, 0) scale(1)`;
+        dragState.element.style.zIndex = '';
+        dragState.element.style.filter = '';
+        dragState.element.style.cursor = '';
+        dragState.element.style.willChange = '';
       }
     } else {
       // Reset styles if no successful drag
       if (dragState.element) {
         dragState.element.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
         dragState.element.style.transform = '';
+        dragState.element.style.zIndex = '';
+        dragState.element.style.filter = '';
+        dragState.element.style.cursor = '';
+        dragState.element.style.willChange = '';
       }
-    }
-    
-    // Reset common drag styles
-    if (dragState.element) {
-      dragState.element.style.filter = '';
-      dragState.element.style.zIndex = '';
-      dragState.element.style.cursor = '';
-      dragState.element.style.willChange = '';
     }
     
     // Reset drag state
@@ -157,14 +156,14 @@ export const DesignCanvas = ({
     const component = components.find(c => c.id === componentId);
     if (!component) return;
     
-    // Get mouse position relative to canvas
-    const mouseCanvasPos = getCanvasCoordinates(e.clientX, e.clientY);
+    // Get element's position in viewport
+    const elementRect = componentWrapper.getBoundingClientRect();
+    const canvasRect = canvasRef.current.getBoundingClientRect();
     
-    // Calculate offset: where within the component did the user click?
-    // This is the distance from the component's top-left corner to the click point
+    // Calculate where within the element the user clicked (element-relative offset)
     const dragOffset = {
-      x: mouseCanvasPos.x - component.position.x,
-      y: mouseCanvasPos.y - component.position.y
+      x: e.clientX - elementRect.left,
+      y: e.clientY - elementRect.top
     };
     
     // Set up drag state
@@ -194,7 +193,7 @@ export const DesignCanvas = ({
     componentWrapper.style.willChange = 'transform';
     componentWrapper.style.cursor = 'grabbing';
     
-  }, [components, getCanvasCoordinates, handlePointerMove, onSelectComponent, handlePointerUp]);
+  }, [components, handlePointerMove, onSelectComponent, handlePointerUp]);
 
   const renderComponent = (component: DesignComponent) => {
     const commonProps = {
