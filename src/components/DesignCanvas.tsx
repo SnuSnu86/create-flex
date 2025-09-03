@@ -93,11 +93,20 @@ export const DesignCanvas = ({
     e.stopPropagation();
     
     const element = e.currentTarget as HTMLElement;
-    const rect = element.getBoundingClientRect();
+    const canvasRect = canvasRef.current?.getBoundingClientRect();
+    if (!canvasRect) return;
     
-    // Calculate offset from mouse to element's top-left corner
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;
+    // Get current component data
+    const component = components.find(comp => comp.id === componentId);
+    if (!component) return;
+    
+    // Calculate mouse position relative to canvas
+    const mouseCanvasX = e.clientX - canvasRect.left;
+    const mouseCanvasY = e.clientY - canvasRect.top;
+    
+    // Calculate offset from mouse to component's position in canvas coordinates
+    const offsetX = mouseCanvasX - component.position.x;
+    const offsetY = mouseCanvasY - component.position.y;
     
     dragStateRef.current = {
       isDragging: true,
@@ -124,7 +133,7 @@ export const DesignCanvas = ({
     element.style.transition = 'none';
     element.style.zIndex = '1000';
     element.style.filter = 'drop-shadow(0 20px 25px rgba(0,0,0,0.3))';
-  }, [handlePointerMove, onSelectComponent, preventDragInterference]);
+  }, [handlePointerMove, onSelectComponent, components]);
 
   // End drag operation
   const handlePointerUp = useCallback((e: PointerEvent) => {
