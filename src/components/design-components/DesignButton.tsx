@@ -74,7 +74,14 @@ export const DesignButton = ({
         hoverEffect === 'none' && 'hover:scale-105 hover:shadow-lg hover:-translate-y-0.5'
       )}
       disabled={disabled}
-      style={customStyle}
+      style={{
+        ...customStyle,
+        // Apply background color directly to button
+        ...(customStyle?.backgroundColor && { 
+          background: customStyle.backgroundColor,
+          backgroundColor: customStyle.backgroundColor 
+        })
+      }}
       onMouseEnter={(e) => {
         // Force hover state to trigger
         e.currentTarget.classList.add('hover');

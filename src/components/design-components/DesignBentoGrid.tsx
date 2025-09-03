@@ -105,7 +105,12 @@ export const DesignBentoGrid = ({
               )}
               style={{
                 gridColumn: `span ${Math.min(item.span.col, columns)}`,
-                gridRow: `span ${Math.min(item.span.row, rows)}`
+                gridRow: `span ${Math.min(item.span.row, rows)}`,
+                // Apply background color to individual cards, not container
+                ...(customStyle?.backgroundColor && { 
+                  background: customStyle.backgroundColor,
+                  backgroundColor: customStyle.backgroundColor 
+                })
               }}
             >
             {/* Background Pattern */}

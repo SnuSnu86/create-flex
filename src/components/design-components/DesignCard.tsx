@@ -53,7 +53,14 @@ export const DesignCard = ({
       'before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-primary/5 before:to-accent/5',
       'before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500'
     )}
-    style={customStyle}
+    style={{
+      ...customStyle,
+      // Apply background color to card, overriding gradient if set
+      ...(customStyle?.backgroundColor && { 
+        background: customStyle.backgroundColor,
+        backgroundColor: customStyle.backgroundColor 
+      })
+    }}
     onMouseEnter={(e) => {
       // Force hover effects to trigger
       e.currentTarget.classList.add('hover');

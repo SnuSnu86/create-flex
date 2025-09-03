@@ -294,7 +294,7 @@ export const PropertiesPanel = ({ selectedComponent, onUpdateComponent }: Proper
                   onChange={(color) => updateStyle({ color })}
                 />
                 <ColorPicker
-                  label="Background"
+                  label="Background Color"
                   value={selectedComponent.props.customStyle?.backgroundColor}
                   onChange={(backgroundColor) => updateStyle({ backgroundColor })}
                 />
@@ -303,6 +303,22 @@ export const PropertiesPanel = ({ selectedComponent, onUpdateComponent }: Proper
                   value={selectedComponent.props.customStyle?.borderColor}
                   onChange={(borderColor) => updateStyle({ borderColor })}
                 />
+                
+                {selectedComponent.type === 'card' && (
+                  <div className="pt-2 border-t border-border/30">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      💡 Background replaces the gradient effect
+                    </p>
+                  </div>
+                )}
+                
+                {selectedComponent.type === 'bento-grid' && (
+                  <div className="pt-2 border-t border-border/30">
+                    <p className="text-xs text-muted-foreground mb-2">
+                      💡 Background applies to all grid items
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
