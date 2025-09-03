@@ -143,9 +143,16 @@ export const PropertiesPanel = ({ selectedComponent, onUpdateComponent }: Proper
               cleanup();
             };
             
+            // Handle real-time input changes (while dragging in color picker)
+            const handleInput = (e: Event) => {
+              const newColor = (e.target as HTMLInputElement).value;
+              onChange(newColor);
+            };
+            
             // Handle cleanup
             const cleanup = () => {
               colorInput.removeEventListener('change', handleChange);
+              colorInput.removeEventListener('input', handleInput);
               colorInput.removeEventListener('blur', handleBlur);
               if (colorInput.parentElement) {
                 colorInput.remove();
@@ -158,6 +165,7 @@ export const PropertiesPanel = ({ selectedComponent, onUpdateComponent }: Proper
             };
             
             colorInput.addEventListener('change', handleChange);
+            colorInput.addEventListener('input', handleInput);
             colorInput.addEventListener('blur', handleBlur);
             
             // Fallback cleanup after 10 seconds
