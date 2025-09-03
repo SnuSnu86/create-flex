@@ -95,7 +95,7 @@ export const DesignCanvas = ({
   }, [components, getCanvasCoordinates, onSelectComponent]);
 
   // Handle mouse move during drag
-  const handleMouseMove = useCallback((e: MouseEvent) => {
+  const handleMouseMove = (e: MouseEvent) => {
     if (!dragState.isDragging || !dragState.componentId) return;
     
     e.preventDefault();
@@ -126,11 +126,10 @@ export const DesignCanvas = ({
     onUpdateComponent(dragState.componentId, {
       position: constrainedPosition
     });
-    
-  }, [dragState, getCanvasCoordinates, onUpdateComponent]);
+  };
 
   // End dragging
-  const handleMouseUp = useCallback((e: MouseEvent) => {
+  const handleMouseUp = (e: MouseEvent) => {
     console.log('Drag ended');
     
     // Clean up global event listeners
@@ -149,7 +148,7 @@ export const DesignCanvas = ({
       startComponentPos: { x: 0, y: 0 },
       dragOffset: { x: 0, y: 0 }
     });
-  }, [handleMouseMove]);
+  };
 
   const renderComponent = (component: DesignComponent) => {
     const commonProps = {
@@ -223,7 +222,7 @@ export const DesignCanvas = ({
         />
 
         {/* Debug Info */}
-        <div className="absolute top-4 left-4 bg-black/50 text-white p-2 rounded text-xs font-mono z-50">
+        <div className="absolute top-4 left-4 bg-black/70 text-white p-2 rounded text-xs font-mono z-10 pointer-events-none">
           <div>Components: {components.length}</div>
           <div>Selected: {selectedComponent || 'none'}</div>
           <div>Dragging: {dragState.isDragging ? dragState.componentId : 'none'}</div>
@@ -246,14 +245,13 @@ export const DesignCanvas = ({
               className={cn(
                 'absolute cursor-grab group select-none',
                 isSelected && !isDragging && 'ring-2 ring-accent ring-offset-2 ring-offset-canvas',
-                isDragging && 'cursor-grabbing scale-105 z-50',
-                !isDragging && 'transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/20'
+                isDragging && 'cursor-grabbing z-50',
+                !isDragging && 'transition-all duration-200 hover:scale-[1.02] hover:shadow-lg'
               )}
               style={{
                 left: `${validPosition.x}px`,
                 top: `${validPosition.y}px`,
-                transform: isDragging ? 'scale(1.05)' : undefined,
-                zIndex: isDragging ? 1000 : 'auto'
+                zIndex: isDragging ? 1000 : isSelected ? 100 : 'auto'
               }}
               onMouseDown={(e) => handleMouseDown(e, component.id)}
               onClick={(e) => {
@@ -264,24 +262,21 @@ export const DesignCanvas = ({
               }}
             >
               {/* Component Content */}
-              <div className="pointer-events-none">
+              <div className={isDragging ? 'pointer-events-none' : 'pointer-events-auto'}>
                 {renderComponent(component)}
               </div>
               
               {/* Selection Controls */}
               {isSelected && !isDragging && (
-                <div className="absolute -top-12 left-0 flex items-center gap-1 bg-primary rounded-lg p-1 animate-slide-up shadow-lg">
+                <div className="absolute -top-12 left-0 flex items-center gap-1 bg-primary rounded-lg p-1 animate-slide-up shadow-lg z-20">
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-7 w-7 p-0 text-primary-foreground hover:bg-primary-foreground/20 hover:scale-110 transition-all duration-200 pointer-events-auto"
+                    className="h-7 w-7 p-0 text-primary-foreground hover:bg-primary-foreground/20 hover:scale-110 transition-all duration-200"
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
                       onDeleteComponent(component.id);
-                    }}
-                    onMouseDown={(e) => {
-                      e.stopPropagation(); // Prevent drag initiation
                     }}
                   >
                     <Trash2 className="w-3 h-3" />
@@ -296,7 +291,7 @@ export const DesignCanvas = ({
               
               {/* Drag Handle Indicator */}
               {isSelected && !isDragging && (
-                <div className="absolute -top-2 -right-2 w-4 h-4 bg-accent rounded-full border-2 border-canvas animate-bounce-gentle opacity-80" />
+                <div className="absolute -top-2 -right-2 w-4 h-4 bg-accent rounded-full border-2 border-canvas animate-bounce-gentle opacity-80 pointer-events-none" />
               )}
             </div>
           );
