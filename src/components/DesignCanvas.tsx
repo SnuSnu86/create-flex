@@ -59,10 +59,10 @@ export const DesignCanvas = ({
     const dragState = dragStateRef.current;
     if (!dragState.isDragging || !dragState.element || !canvasRef.current) return;
 
-    // Convert mouse position to canvas coordinates
+    // CRITICAL: Convert mouse position to canvas coordinates first
     const mouseCanvasPos = getCanvasCoordinates(clientX, clientY);
     
-    // Calculate new position: mouse position minus the click offset
+    // Calculate new position using the stored offset
     const newPosition = {
       x: mouseCanvasPos.x - dragState.dragOffset.x,
       y: mouseCanvasPos.y - dragState.dragOffset.y
@@ -79,6 +79,11 @@ export const DesignCanvas = ({
     
     // Store the final position for when we release
     dragState.finalPosition = constrainedPosition;
+    
+    // CRITICAL: Update React state immediately during drag to prevent snap-back
+    onUpdateComponent(dragState.componentId!, {
+      position: constrainedPosition
+    });
     
     // Apply immediate visual transform for smooth feedback
     dragState.element.style.transform = `translate3d(${constrainedPosition.x}px, ${constrainedPosition.y}px, 0) scale(1.05)`;
@@ -101,15 +106,8 @@ export const DesignCanvas = ({
     const dragState = dragStateRef.current;
     
     if (dragState.isDragging && dragState.componentId && dragState.element) {
-      // CRITICAL: Use the calculated final position, not the mouse position
+      // Position is already updated during drag, just clean up visual styles
       const finalPosition = dragState.finalPosition;
-      
-      console.log('Drag end - Final position:', finalPosition);
-      
-      // Update React state with the exact final position
-      onUpdateComponent(dragState.componentId, {
-        position: finalPosition
-      });
       
       // Reset visual styles but keep the element at the final position
       dragState.element.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
@@ -167,20 +165,18 @@ export const DesignCanvas = ({
     const component = components.find(c => c.id === componentId);
     if (!component) return;
     
-    // Get element and canvas rectangles for accurate calculations
-    const elementRect = componentWrapper.getBoundingClientRect();
-    const canvasRect = canvasRef.current.getBoundingClientRect();
+    // Convert mouse position to canvas coordinates
+    const mouseCanvasPos = getCanvasCoordinates(e.clientX, e.clientY);
     
-    // CRITICAL: Calculate offset from mouse to element's current visual position
-    // This tells us exactly where within the component the user clicked
+    // CRITICAL: Calculate offset as where within the component the user clicked
+    // This is the distance from the component's top-left to the click point
     const dragOffset = {
-      x: e.clientX - elementRect.left,
-      y: e.clientY - elementRect.top
+      x: mouseCanvasPos.x - component.position.x,
+      y: mouseCanvasPos.y - component.position.y
     };
     
     console.log('Drag start:', {
-      mouse: { x: e.clientX, y: e.clientY },
-      elementRect,
+      mouseCanvas: mouseCanvasPos,
       componentPosition: component.position,
       calculatedOffset: dragOffset
     });
@@ -213,7 +209,7 @@ export const DesignCanvas = ({
     componentWrapper.style.willChange = 'transform';
     componentWrapper.style.cursor = 'grabbing';
     
-  }, [components, handlePointerMove, handlePointerUp, onSelectComponent, getCanvasCoordinates]);
+  }, [components, handlePointerMove, handlePointerUp, onSelectComponent, getCanvasCoordinates, onUpdateComponent]);
 
   const renderComponent = (component: DesignComponent) => {
     const commonProps = {
