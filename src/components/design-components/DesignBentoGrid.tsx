@@ -77,18 +77,13 @@ export const DesignBentoGrid = ({
   return (
     <div 
       className={cn(
-        'grid gap-4 transition-all duration-normal',
-        'pointer-events-auto',
-        isSelected && 'ring-2 ring-accent ring-offset-2 rounded-lg'
+        'grid gap-4 transition-all duration-300 will-change-transform',
+        'pointer-events-none select-none' // Prevent interference with drag system
       )}
       style={{ 
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
         gridTemplateRows: `repeat(${rows}, 180px)`,
         width: `${columns * 200 + (columns - 1) * 16}px`
-      }}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
       }}
     >
       {items.slice(0, columns * rows).map((item, index) => {
@@ -98,8 +93,8 @@ export const DesignBentoGrid = ({
             <Card
               key={item.id}
               className={cn(
-                'p-6 bg-gradient-surface border-border/50 backdrop-blur-sm transform-gpu',
-                'hover:shadow-xl hover:shadow-primary/10 transition-all duration-normal group cursor-pointer',
+                'p-6 bg-gradient-surface border-border/50 backdrop-blur-sm transform-gpu will-change-transform',
+                'hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 group',
                 'hover:-translate-y-2 hover:rotate-1 hover:scale-[1.02]',
                 'before:absolute before:inset-0 before:bg-gradient-to-br before:from-primary/5 before:via-transparent before:to-accent/5',
                 'before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500',

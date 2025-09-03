@@ -33,22 +33,17 @@ export const DesignButton = ({
   return (
     <Button
       className={cn(
-        'transition-all duration-normal font-medium relative overflow-hidden',
-        'hover:scale-105 active:scale-95 transform-gpu',
+        'transition-all duration-300 font-medium relative overflow-hidden will-change-transform',
+        'hover:scale-105 transform-gpu',
         'before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent',
         'before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700',
         'hover:shadow-lg hover:-translate-y-0.5',
-        'pointer-events-auto cursor-pointer',
+        'pointer-events-none select-none', // Prevent interference with drag system
         variantStyles[variant],
         sizeStyles[size],
-        disabled && 'opacity-50 cursor-not-allowed hover:scale-100 hover:translate-y-0',
-        isSelected && 'ring-2 ring-accent ring-offset-2 animate-pulse-soft'
+        disabled && 'opacity-50 hover:scale-100 hover:translate-y-0'
       )}
       disabled={disabled}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
     >
       <span className="relative z-10">{children}</span>
     </Button>
