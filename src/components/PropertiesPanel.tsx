@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings, Palette, Type, Layout, Paintbrush, BorderAll, Move, Zap } from 'lucide-react';
+import { Settings, Palette, Type, Layout, Paintbrush, ListOrdered as BorderAll, Move, Zap } from 'lucide-react';
 import type { DesignComponent } from './DesignTool';
 
 interface PropertiesPanelProps {
