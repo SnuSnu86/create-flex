@@ -75,43 +75,104 @@ export const PropertiesPanel = ({ selectedComponent, onUpdateComponent }: Proper
           className="w-8 h-8 rounded border border-border cursor-pointer relative hover:scale-110 transition-transform"
           style={{ backgroundColor: value || '#8b5cf6' }}
           onClick={(event) => {
-            // Create a hidden color input positioned correctly
+            const clickedElement = event.currentTarget as HTMLElement;
+            const rect = clickedElement.getBoundingClientRect();
+            
+            // Create color input with proper positioning
             const colorInput = document.createElement('input');
             colorInput.type = 'color';
             colorInput.value = value || '#8b5cf6';
-            colorInput.style.position = 'absolute';
-            colorInput.style.opacity = '0';
-            colorInput.style.pointerEvents = 'none';
-            colorInput.style.width = '0';
-            colorInput.style.height = '0';
             
-            // Get the position of the clicked element
-            const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-            colorInput.style.top = `${rect.top}px`;
-            colorInput.style.left = `${rect.left}px`;
+            // Critical: Make input visible but positioned correctly
+            colorInput.style.position = 'fixed';
+            colorInput.style.zIndex = '9999';
+            colorInput.style.opacity = '0.01'; // Nearly invisible but not 0
+            colorInput.style.width = '40px';
+            colorInput.style.height = '40px';
+            colorInput.style.border = 'none';
+            colorInput.style.outline = 'none';
+            colorInput.style.cursor = 'pointer';
             
-            // Append to body for correct positioning
+            // Calculate optimal position
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const pickerWidth = 300; // Estimated color picker width
+            const pickerHeight = 400; // Estimated color picker height
+            
+            // Position relative to clicked element, but handle screen boundaries
+            let left = rect.left + rect.width / 2 - 20; // Center on the color square
+            let top = rect.top + rect.height / 2 - 20;
+            
+            // Handle right edge overflow
+            if (left + pickerWidth > viewportWidth) {
+              left = viewportWidth - pickerWidth - 20;
+            }
+            
+            // Handle left edge overflow
+            if (left < 20) {
+              left = 20;
+            }
+            
+            // Handle bottom edge overflow
+            if (top + pickerHeight > viewportHeight) {
+              top = rect.top - pickerHeight - 10; // Position above the element
+            }
+            
+            // Handle top edge overflow
+            if (top < 20) {
+              top = 20;
+            }
+            
+            // Apply calculated position
+            colorInput.style.left = `${left}px`;
+            colorInput.style.top = `${top}px`;
+            
+            // Append to body and trigger
             document.body.appendChild(colorInput);
-            colorInput.click();
             
-            colorInput.onchange = (e) => {
-              onChange((e.target as HTMLInputElement).value);
-              colorInput.remove();
+            // Small delay to ensure proper positioning before opening
+            requestAnimationFrame(() => {
+              colorInput.click();
+              colorInput.focus();
+            });
+            
+            // Handle color change
+            const handleChange = (e: Event) => {
+              const newColor = (e.target as HTMLInputElement).value;
+              onChange(newColor);
+              cleanup();
             };
             
-            // Remove after a delay
-            setTimeout(() => {
+            // Handle cleanup
+            const cleanup = () => {
+              colorInput.removeEventListener('change', handleChange);
+              colorInput.removeEventListener('blur', handleBlur);
               if (colorInput.parentElement) {
                 colorInput.remove();
               }
-            }, 5000);
+            };
+            
+            // Handle blur (when user clicks outside or closes picker)
+            const handleBlur = () => {
+              setTimeout(cleanup, 100); // Small delay to allow change event
+            };
+            
+            colorInput.addEventListener('change', handleChange);
+            colorInput.addEventListener('blur', handleBlur);
+            
+            // Fallback cleanup after 10 seconds
+            setTimeout(() => {
+              if (colorInput.parentElement) {
+                cleanup();
+              }
+            }, 10000);
           }}
         />
         <Input
           value={value || '#8b5cf6'}
           onChange={(e) => onChange(e.target.value)}
           placeholder="#8b5cf6"
-          className="flex-1 h-8 text-xs font-mono focus:ring-2 focus:ring-primary"
+          className="flex-1 h-8 text-xs font-mono focus:ring-2 focus:ring-primary focus:outline-none"
         />
       </div>
       <Tabs value={colorMode} onValueChange={(v) => setColorMode(v as any)} className="w-full">
