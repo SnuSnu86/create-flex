@@ -74,37 +74,37 @@ export const PropertiesPanel = ({ selectedComponent, onUpdateComponent }: Proper
         <div 
           className="w-8 h-8 rounded border border-border cursor-pointer relative hover:scale-110 transition-transform"
           style={{ backgroundColor: value || '#8b5cf6' }}
-          onClick={() => {
-            // Create a hidden color input positioned relative to the clicked element
+          onClick={(event) => {
+            // Create a hidden color input positioned correctly
             const colorInput = document.createElement('input');
             colorInput.type = 'color';
             colorInput.value = value || '#8b5cf6';
             colorInput.style.position = 'absolute';
-            colorInput.style.top = '0';
-            colorInput.style.left = '0';
-            colorInput.style.width = '32px';
-            colorInput.style.height = '32px';
             colorInput.style.opacity = '0';
-            colorInput.style.cursor = 'pointer';
+            colorInput.style.pointerEvents = 'none';
+            colorInput.style.width = '0';
+            colorInput.style.height = '0';
             
-            // Append to the color preview div
-            const previewDiv = event?.currentTarget as HTMLElement;
-            if (previewDiv && previewDiv.parentElement) {
-              previewDiv.parentElement.appendChild(colorInput);
-              colorInput.click();
-              
-              colorInput.onchange = (e) => {
-                onChange((e.target as HTMLInputElement).value);
+            // Get the position of the clicked element
+            const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+            colorInput.style.top = `${rect.top}px`;
+            colorInput.style.left = `${rect.left}px`;
+            
+            // Append to body for correct positioning
+            document.body.appendChild(colorInput);
+            colorInput.click();
+            
+            colorInput.onchange = (e) => {
+              onChange((e.target as HTMLInputElement).value);
+              colorInput.remove();
+            };
+            
+            // Remove after a delay
+            setTimeout(() => {
+              if (colorInput.parentElement) {
                 colorInput.remove();
-              };
-              
-              // Remove if user clicks away
-              setTimeout(() => {
-                if (colorInput.parentElement) {
-                  colorInput.remove();
-                }
-              }, 5000);
-            }
+              }
+            }, 5000);
           }}
         />
         <Input

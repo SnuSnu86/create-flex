@@ -250,7 +250,7 @@ export const DesignCanvas = ({
             <div
               key={component.id}
               className={cn(
-                'absolute group select-none',
+                'absolute group select-none focus:outline-none',
                 isDragging ? 'cursor-grabbing z-50' : 'cursor-grab',
                 !isDragging && 'transition-all duration-200 hover:scale-[1.02] hover:shadow-lg'
               )}
@@ -268,7 +268,7 @@ export const DesignCanvas = ({
               }}
             >
               {/* Component Content */}
-              <div>
+              <div className="focus:outline-none">
                 {renderComponent(component)}
               </div>
               

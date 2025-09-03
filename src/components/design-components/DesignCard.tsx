@@ -45,15 +45,23 @@ export const DesignCard = ({
 
   return (
     <Card className={cn(
-      'bg-gradient-surface border-border/50 backdrop-blur-sm transition-all duration-300 group will-change-transform',
+      'bg-gradient-surface border-border/50 backdrop-blur-sm transition-all duration-300 group will-change-transform focus:outline-none',
       getHoverEffectClass(),
       getAnimationClass(),
       'transform-gpu',
-      'pointer-events-auto select-none', // Allow hover effects
+      'pointer-events-auto select-none cursor-pointer', // Allow hover effects
       'before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-primary/5 before:to-accent/5',
       'before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500'
     )}
     style={customStyle}
+    onMouseEnter={(e) => {
+      // Force hover effects to trigger
+      e.currentTarget.classList.add('hover');
+    }}
+    onMouseLeave={(e) => {
+      // Remove forced hover state
+      e.currentTarget.classList.remove('hover');
+    }}
     >
       {showImage && (
         <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 relative overflow-hidden group-hover:scale-110 transition-transform duration-700">

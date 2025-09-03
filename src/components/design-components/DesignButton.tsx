@@ -61,13 +61,13 @@ export const DesignButton = ({
   return (
     <Button
       className={cn(
-        'transition-all duration-300 font-medium relative overflow-hidden will-change-transform',
+        'transition-all duration-300 font-medium relative overflow-hidden will-change-transform focus:outline-none',
         getHoverEffectClass(),
         getAnimationClass(),
         'transform-gpu',
         'before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent',
         'before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700',
-        'pointer-events-auto select-none', // Allow hover effects
+        'pointer-events-auto select-none cursor-pointer', // Allow hover effects
         variantStyles[variant],
         sizeStyles[size],
         disabled && 'opacity-50 hover:scale-100 hover:translate-y-0',
@@ -75,6 +75,14 @@ export const DesignButton = ({
       )}
       disabled={disabled}
       style={customStyle}
+      onMouseEnter={(e) => {
+        // Force hover state to trigger
+        e.currentTarget.classList.add('hover');
+      }}
+      onMouseLeave={(e) => {
+        // Remove forced hover state
+        e.currentTarget.classList.remove('hover');
+      }}
     >
       <span className="relative z-10">{children}</span>
     </Button>
