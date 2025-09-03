@@ -90,18 +90,21 @@ export const DesignBentoGrid = ({
         const IconComponent = item.icon || Zap;
         
         return (
-          <Card
-            key={item.id}
-            className={cn(
-              'p-6 bg-gradient-surface border-border/50 backdrop-blur-sm',
-              'hover:shadow-lg transition-all duration-normal group',
-              'relative overflow-hidden'
-            )}
-            style={{
-              gridColumn: `span ${Math.min(item.span.col, columns)}`,
-              gridRow: `span ${Math.min(item.span.row, rows)}`
-            }}
-          >
+            <Card
+              key={item.id}
+              className={cn(
+                'p-6 bg-gradient-surface border-border/50 backdrop-blur-sm transform-gpu',
+                'hover:shadow-xl hover:shadow-primary/10 transition-all duration-normal group cursor-pointer',
+                'hover:-translate-y-2 hover:rotate-1 hover:scale-[1.02]',
+                'before:absolute before:inset-0 before:bg-gradient-to-br before:from-primary/5 before:via-transparent before:to-accent/5',
+                'before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500',
+                'relative overflow-hidden'
+              )}
+              style={{
+                gridColumn: `span ${Math.min(item.span.col, columns)}`,
+                gridRow: `span ${Math.min(item.span.row, rows)}`
+              }}
+            >
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-[0.03]">
               <div 
@@ -115,8 +118,8 @@ export const DesignBentoGrid = ({
             
             <div className="relative z-10 h-full flex flex-col">
               <div className="flex items-start justify-between mb-4">
-                <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-                  <IconComponent className="w-5 h-5 text-primary" />
+                <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+                  <IconComponent className="w-5 h-5 text-primary group-hover:animate-bounce-gentle" />
                 </div>
                 
                 {item.change && (
@@ -139,7 +142,7 @@ export const DesignBentoGrid = ({
                 </h3>
                 
                 {item.value && (
-                  <div className="text-2xl font-bold text-card-foreground mb-1">
+                  <div className="text-2xl font-bold text-card-foreground mb-1 group-hover:text-primary transition-colors duration-300 group-hover:scale-105 transform-gpu">
                     {item.value}
                   </div>
                 )}
@@ -151,10 +154,14 @@ export const DesignBentoGrid = ({
               
               {/* Decorative elements for larger cards */}
               {item.span.col > 1 && (
-                <div className="absolute bottom-4 right-4 opacity-20">
-                  <div className="w-16 h-16 bg-gradient-primary rounded-full blur-xl" />
+                <div className="absolute bottom-4 right-4 opacity-20 group-hover:opacity-40 transition-opacity duration-500">
+                  <div className="w-16 h-16 bg-gradient-primary rounded-full blur-xl group-hover:animate-pulse-soft" />
                 </div>
               )}
+              
+              {/* Animated corner decoration */}
+              <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100" />
             </div>
           </Card>
         );

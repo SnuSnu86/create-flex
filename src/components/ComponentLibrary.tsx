@@ -83,20 +83,20 @@ export const ComponentLibrary = ({ onAddComponent }: ComponentLibraryProps) => {
           {filteredComponents.map(component => (
             <Card 
               key={component.type} 
-              className="cursor-pointer hover:shadow-md transition-all duration-fast hover:border-primary/50 group"
+              className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:border-primary/50 group hover:scale-105 hover:-translate-y-1 transform-gpu"
               onClick={() => onAddComponent(component.type)}
             >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3 flex-1">
-                    <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-                      <component.icon className="w-4 h-4 text-primary" />
+                    <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-12">
+                      <component.icon className="w-4 h-4 text-primary group-hover:animate-bounce-gentle" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-card-foreground text-sm mb-1">
+                      <h3 className="font-medium text-card-foreground text-sm mb-1 group-hover:text-primary transition-colors duration-300 group-hover:translate-x-1">
                         {component.name}
                       </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <p className="text-xs text-muted-foreground leading-relaxed group-hover:text-foreground transition-colors duration-300">
                         {component.description}
                       </p>
                     </div>

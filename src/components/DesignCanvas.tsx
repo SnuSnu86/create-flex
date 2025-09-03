@@ -5,6 +5,7 @@ import { DesignBentoGrid } from './design-components/DesignBentoGrid';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Move, Eye } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { DesignComponent } from './DesignTool';
 
 interface DesignCanvasProps {
@@ -127,45 +128,50 @@ export const DesignCanvas = ({
         />
 
         {/* Components */}
-        {components.map(component => (
-          <div
-            key={component.id}
-            className={`absolute cursor-move transition-all duration-fast ${
-              selectedComponent === component.id 
-                ? 'ring-2 ring-primary ring-offset-2 ring-offset-canvas' 
-                : 'hover:ring-1 hover:ring-primary/50 hover:ring-offset-1 hover:ring-offset-canvas'
-            }`}
-            style={{
-              left: component.position.x,
-              top: component.position.y,
-              zIndex: selectedComponent === component.id ? 20 : 10
-            }}
-            onMouseDown={(e) => handleMouseDown(e, component.id)}
-          >
-            {renderComponent(component)}
-            
-            {/* Selection Controls */}
-            {selectedComponent === component.id && (
-              <div className="absolute -top-10 left-0 flex items-center gap-1 bg-primary rounded-md p-1">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0 text-primary-foreground hover:bg-primary-foreground/20"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteComponent(component.id);
-                  }}
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
-                <div className="w-px h-4 bg-primary-foreground/20" />
-                <div className="px-2 text-xs text-primary-foreground font-medium">
-                  {component.type}
+        {components.map(component => {
+          const isDragging = draggedComponent === component.id;
+          
+          return (
+            <div
+              key={component.id}
+              className={cn(
+                'absolute cursor-move transition-all duration-300 transform-gpu',
+                selectedComponent === component.id && 'ring-2 ring-accent ring-offset-2 animate-pulse-soft',
+                'hover:shadow-xl hover:shadow-primary/10 hover:scale-105',
+                isDragging && 'scale-110 rotate-2 shadow-2xl z-50'
+              )}
+              style={{
+                left: component.position.x,
+                top: component.position.y,
+                zIndex: selectedComponent === component.id ? 20 : (isDragging ? 50 : 10)
+              }}
+              onMouseDown={(e) => handleMouseDown(e, component.id)}
+            >
+              {renderComponent(component)}
+              
+              {/* Selection Controls */}
+              {selectedComponent === component.id && (
+                <div className="absolute -top-10 left-0 flex items-center gap-1 bg-primary rounded-md p-1 animate-slide-up">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0 text-primary-foreground hover:bg-primary-foreground/20 hover:scale-110 transition-all duration-200"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteComponent(component.id);
+                    }}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                  <div className="w-px h-4 bg-primary-foreground/20" />
+                  <div className="px-2 text-xs text-primary-foreground font-medium">
+                    {component.type}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          );
+        })}
 
         {/* Empty State */}
         {components.length === 0 && (

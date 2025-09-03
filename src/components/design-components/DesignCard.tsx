@@ -17,52 +17,45 @@ export const DesignCard = ({
 }: DesignCardProps) => {
   return (
     <Card className={cn(
-      'w-80 transition-all duration-normal hover:shadow-lg',
-      'bg-gradient-surface border-border/50 backdrop-blur-sm',
-      isSelected && 'ring-2 ring-accent ring-offset-2'
+      'bg-gradient-surface border-border/50 backdrop-blur-sm transition-all duration-normal group',
+      'hover:shadow-xl hover:border-accent/30 hover:-translate-y-1 transform-gpu',
+      'hover:rotate-1 hover:scale-[1.02] cursor-pointer',
+      'before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-primary/5 before:to-accent/5',
+      'before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500',
+      isSelected && 'ring-2 ring-accent ring-offset-2 animate-pulse-soft scale-105 rotate-1'
     )}>
       {showImage && (
-        <div className="h-48 bg-gradient-accent rounded-t-lg flex items-center justify-center">
-          <div className="text-accent-foreground/60 text-sm font-medium">
-            Image Placeholder
-          </div>
+        <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 relative overflow-hidden group-hover:scale-110 transition-transform duration-700">
+          <div className="absolute inset-0 opacity-20" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grid' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 20 0 L 0 0 0 20' fill='none' stroke='%23ffffff' stroke-width='0.5' opacity='0.1'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grid)' /%3E%3C/svg%3E")`
+          }} />
+          <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent group-hover:from-card/60" />
+          <div className="absolute top-4 right-4 w-2 h-2 bg-accent rounded-full animate-pulse" />
         </div>
       )}
       
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-lg font-semibold text-card-foreground">
-              {title}
-            </CardTitle>
-            <CardDescription className="text-muted-foreground leading-relaxed">
-              {description}
-            </CardDescription>
-          </div>
-          <Badge variant="secondary" className="ml-2 text-xs">
-            New
+      <CardContent className="p-6 relative">
+        <CardTitle className="text-lg font-semibold text-card-foreground mb-2 group-hover:text-primary transition-all duration-300 group-hover:translate-x-1">
+          {title}
+        </CardTitle>
+        
+        <p className="text-muted-foreground text-sm leading-relaxed group-hover:text-foreground transition-colors duration-300">
+          {description}
+        </p>
+        
+        <div className="mt-4 flex items-center justify-between">
+          <Badge variant="secondary" className="text-xs group-hover:bg-primary/10 group-hover:text-primary transition-all duration-300 group-hover:scale-110">
+            Feature
           </Badge>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-success rounded-full"></div>
-            <span className="text-sm text-muted-foreground">Active status</span>
-          </div>
           
-          <div className="flex items-center justify-between pt-2 border-t border-border/50">
-            <span className="text-xs text-muted-foreground">
-              Last updated: 2 min ago
-            </span>
-            <div className="flex items-center gap-1">
-              <div className="w-1 h-1 bg-primary rounded-full"></div>
-              <div className="w-1 h-1 bg-primary/60 rounded-full"></div>
-              <div className="w-1 h-1 bg-primary/40 rounded-full"></div>
-            </div>
+          <div className="text-xs text-muted-foreground group-hover:text-accent transition-colors duration-300 flex items-center gap-1">
+            <div className="w-1 h-1 bg-current rounded-full animate-pulse" />
+            2 min read
           </div>
         </div>
+        
+        {/* Decorative corner element */}
+        <div className="absolute top-2 right-2 w-8 h-8 bg-gradient-to-br from-primary/10 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 group-hover:animate-bounce-gentle" />
       </CardContent>
     </Card>
   );
