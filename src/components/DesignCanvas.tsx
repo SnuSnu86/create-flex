@@ -79,10 +79,13 @@ export const DesignCanvas = ({
     dragState.element.style.zIndex = '1000';
     dragState.element.style.filter = 'drop-shadow(0 20px 25px rgba(0,0,0,0.3))';
     
-    // Store position for final state update
-    dragState.element.dataset.finalX = constrainedPosition.x.toString();
-    dragState.element.dataset.finalY = constrainedPosition.y.toString();
-  }, [getCanvasCoordinates]);
+    // Update React state immediately to prevent position jumping
+    if (dragState.componentId) {
+      onUpdateComponent(dragState.componentId, {
+        position: constrainedPosition
+      });
+    }
+  }, [getCanvasCoordinates, onUpdateComponent]);
 
   // Optimized mouse move handler using RAF
   const handlePointerMove = useCallback((e: PointerEvent) => {
@@ -92,6 +95,55 @@ export const DesignCanvas = ({
       updateComponentPosition(e.clientX, e.clientY);
     });
   }, [updateComponentPosition]);
+
+  // End drag operation
+  const handlePointerUp = useCallback((e: PointerEvent) => {
+    const dragState = dragStateRef.current;
+    
+    if (dragState.isDragging && dragState.componentId && dragState.element) {
+      // Get current component state to maintain position
+      const component = components.find(c => c.id === dragState.componentId);
+      if (component) {
+        const finalPosition = component.position;
+        
+        // Reset element styles with smooth transition back to current state position
+        dragState.element.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+        dragState.element.style.transform = `translate3d(${finalPosition.x}px, ${finalPosition.y}px, 0) scale(1)`;
+      }
+    } else {
+      // Reset styles if no successful drag
+      if (dragState.element) {
+        dragState.element.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+        dragState.element.style.transform = '';
+      }
+    }
+    
+    // Reset common drag styles
+    if (dragState.element) {
+      dragState.element.style.filter = '';
+      dragState.element.style.zIndex = '';
+      dragState.element.style.cursor = '';
+      dragState.element.style.willChange = '';
+    }
+    
+    // Reset drag state
+    dragStateRef.current = {
+      isDragging: false,
+      componentId: null,
+      dragOffset: { x: 0, y: 0 },
+      element: null
+    };
+    
+    setIsDragActive(false);
+    
+    // Remove global event listeners
+    document.removeEventListener('pointermove', handlePointerMove);
+    document.removeEventListener('pointerup', handlePointerUp);
+    
+    // Restore normal interaction
+    document.body.style.userSelect = '';
+    document.body.style.webkitUserSelect = '';
+  }, [components, handlePointerMove]);
 
   // Start drag operation
   const handlePointerDown = useCallback((e: React.PointerEvent, componentId: string) => {
@@ -142,53 +194,7 @@ export const DesignCanvas = ({
     componentWrapper.style.willChange = 'transform';
     componentWrapper.style.cursor = 'grabbing';
     
-  }, [components, getCanvasCoordinates, handlePointerMove, onSelectComponent]);
-
-  // End drag operation
-  const handlePointerUp = useCallback((e: PointerEvent) => {
-    const dragState = dragStateRef.current;
-    
-    if (dragState.isDragging && dragState.componentId && dragState.element) {
-      // Get final position from stored data
-      const finalX = parseInt(dragState.element.dataset.finalX || '0');
-      const finalY = parseInt(dragState.element.dataset.finalY || '0');
-      
-      // Update React state with final position
-      onUpdateComponent(dragState.componentId, {
-        position: { x: finalX, y: finalY }
-      });
-      
-      // Reset element styles with smooth transition back
-      dragState.element.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
-      dragState.element.style.transform = `translate3d(${finalX}px, ${finalY}px, 0) scale(1)`;
-      dragState.element.style.filter = '';
-      dragState.element.style.zIndex = '';
-      dragState.element.style.cursor = '';
-      dragState.element.style.willChange = '';
-      
-      // Clean up stored position data
-      delete dragState.element.dataset.finalX;
-      delete dragState.element.dataset.finalY;
-    }
-    
-    // Reset drag state
-    dragStateRef.current = {
-      isDragging: false,
-      componentId: null,
-      dragOffset: { x: 0, y: 0 },
-      element: null
-    };
-    
-    setIsDragActive(false);
-    
-    // Remove global event listeners
-    document.removeEventListener('pointermove', handlePointerMove);
-    document.removeEventListener('pointerup', handlePointerUp);
-    
-    // Restore normal interaction
-    document.body.style.userSelect = '';
-    document.body.style.webkitUserSelect = '';
-  }, [handlePointerMove, onUpdateComponent]);
+  }, [components, getCanvasCoordinates, handlePointerMove, onSelectComponent, handlePointerUp]);
 
   const renderComponent = (component: DesignComponent) => {
     const commonProps = {
