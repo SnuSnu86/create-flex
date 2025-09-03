@@ -6,8 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Move, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { constrainPosition, applyTransform, resetDragStyles, preventDragInterference, restoreDragInterference } from '@/lib/drag-utils';
-import { useOptimizedDrag } from '@/hooks/use-performance';
 import type { DesignComponent } from './DesignTool';
 
 interface DesignCanvasProps {
@@ -21,8 +19,8 @@ interface DesignCanvasProps {
 interface DragState {
   isDragging: boolean;
   componentId: string | null;
-  startPos: { x: number; y: number };
-  elementOffset: { x: number; y: number };
+  // Offset from mouse to component's top-left corner
+  dragOffset: { x: number; y: number };
   element: HTMLElement | null;
 }
 
@@ -34,106 +32,124 @@ export const DesignCanvas = ({
   onDeleteComponent
 }: DesignCanvasProps) => {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const { throttledUpdate, cleanup } = useOptimizedDrag();
   const dragStateRef = useRef<DragState>({
     isDragging: false,
     componentId: null,
-    startPos: { x: 0, y: 0 },
-    elementOffset: { x: 0, y: 0 },
+    dragOffset: { x: 0, y: 0 },
     element: null
   });
-  const animationFrameRef = useRef<number | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
 
-  // Optimized mouse tracking with RAF
-  const updateComponentPosition = useCallback((clientX: number, clientY: number, useSnapping: boolean = false) => {
+  // Get canvas-relative coordinates from mouse position
+  const getCanvasCoordinates = useCallback((clientX: number, clientY: number) => {
+    if (!canvasRef.current) return { x: 0, y: 0 };
+    
+    const canvasRect = canvasRef.current.getBoundingClientRect();
+    return {
+      x: clientX - canvasRect.left,
+      y: clientY - canvasRect.top
+    };
+  }, []);
+
+  // Update component position with smooth transform
+  const updateComponentPosition = useCallback((clientX: number, clientY: number) => {
     const dragState = dragStateRef.current;
     if (!dragState.isDragging || !dragState.element || !canvasRef.current) return;
 
+    // Get mouse position relative to canvas
+    const mouseCanvasPos = getCanvasCoordinates(clientX, clientY);
+    
+    // Calculate new component position (mouse position minus click offset)
+    const newPosition = {
+      x: mouseCanvasPos.x - dragState.dragOffset.x,
+      y: mouseCanvasPos.y - dragState.dragOffset.y
+    };
+    
+    // Apply constraints to keep component within canvas
     const canvasRect = canvasRef.current.getBoundingClientRect();
-    
-    // Calculate new position relative to canvas
-    const newX = clientX - canvasRect.left - dragState.elementOffset.x;
-    const newY = clientY - canvasRect.top - dragState.elementOffset.y;
-    
-    // Get element dimensions
     const elementRect = dragState.element.getBoundingClientRect();
     
-    // Apply constraints
-    const constrainedPos = constrainPosition(
-      { x: newX, y: newY },
-      { width: elementRect.width, height: elementRect.height },
-      { width: canvasRect.width, height: canvasRect.height }
-    );
+    const constrainedPosition = {
+      x: Math.max(0, Math.min(newPosition.x, canvasRect.width - elementRect.width)),
+      y: Math.max(0, Math.min(newPosition.y, canvasRect.height - elementRect.height))
+    };
     
-    // Apply snap-to-grid if shift key is held
-    // const finalPos = useSnapping ? snapToGrid(constrainedPos, 20) : constrainedPos;
+    // Apply transform for immediate visual feedback (GPU accelerated)
+    dragState.element.style.transform = `translate3d(${constrainedPosition.x}px, ${constrainedPosition.y}px, 0) scale(1.05)`;
+    dragState.element.style.zIndex = '1000';
+    dragState.element.style.filter = 'drop-shadow(0 20px 25px rgba(0,0,0,0.3))';
     
-    // Use optimized transform for immediate visual feedback
-    applyTransform(dragState.element, constrainedPos.x, constrainedPos.y, 1.05, 2);
-    
-    // Store final position for React state update
-    dragState.element.dataset.finalX = constrainedPos.x.toString();
-    dragState.element.dataset.finalY = constrainedPos.y.toString();
-  }, []);
+    // Store position for final state update
+    dragState.element.dataset.finalX = constrainedPosition.x.toString();
+    dragState.element.dataset.finalY = constrainedPosition.y.toString();
+  }, [getCanvasCoordinates]);
 
-  // RAF-optimized mouse move handler
+  // Optimized mouse move handler using RAF
   const handlePointerMove = useCallback((e: PointerEvent) => {
     e.preventDefault();
     
-    // Use throttled RAF updates for 60fps performance
-    throttledUpdate(() => {
-      updateComponentPosition(e.clientX, e.clientY, e.shiftKey);
+    requestAnimationFrame(() => {
+      updateComponentPosition(e.clientX, e.clientY);
     });
-  }, [updateComponentPosition, throttledUpdate]);
+  }, [updateComponentPosition]);
 
   // Start drag operation
   const handlePointerDown = useCallback((e: React.PointerEvent, componentId: string) => {
     e.preventDefault();
     e.stopPropagation();
     
-    const element = e.currentTarget as HTMLElement;
-    const canvasRect = canvasRef.current?.getBoundingClientRect();
-    if (!canvasRect) return;
+    const componentWrapper = e.currentTarget as HTMLElement;
+    if (!canvasRef.current) return;
     
-    // Calculate where within the element the user clicked
-    const elementRect = element.getBoundingClientRect();
-    const offsetX = e.clientX - elementRect.left;
-    const offsetY = e.clientY - elementRect.top;
+    // Get current component data
+    const component = components.find(c => c.id === componentId);
+    if (!component) return;
     
+    // Get mouse position relative to canvas
+    const mouseCanvasPos = getCanvasCoordinates(e.clientX, e.clientY);
+    
+    // Calculate offset: where within the component did the user click?
+    // This is the distance from the component's top-left corner to the click point
+    const dragOffset = {
+      x: mouseCanvasPos.x - component.position.x,
+      y: mouseCanvasPos.y - component.position.y
+    };
+    
+    // Set up drag state
     dragStateRef.current = {
       isDragging: true,
       componentId,
-      startPos: { x: e.clientX, y: e.clientY },
-      elementOffset: { x: offsetX, y: offsetY },
-      element
+      dragOffset,
+      element: componentWrapper
     };
     
     setIsDragActive(true);
     onSelectComponent(componentId);
     
-    // Set pointer capture for better tracking
-    element.setPointerCapture(e.pointerId);
+    // Set pointer capture for reliable tracking
+    componentWrapper.setPointerCapture(e.pointerId);
     
-    // Prevent interference
-    preventDragInterference();
+    // Prevent text selection and other interference
+    document.body.style.userSelect = 'none';
+    document.body.style.webkitUserSelect = 'none';
     
     // Add global event listeners
-    document.addEventListener('pointermove', handlePointerMove);
+    document.addEventListener('pointermove', handlePointerMove, { passive: false });
     document.addEventListener('pointerup', handlePointerUp);
     
-    // Visual feedback
-    element.style.transition = 'none';
-    element.style.zIndex = '1000';
-    element.style.filter = 'drop-shadow(0 20px 25px rgba(0,0,0,0.3))';
-  }, [handlePointerMove, onSelectComponent, components]);
+    // Initial transform setup
+    componentWrapper.style.transition = 'none';
+    componentWrapper.style.willChange = 'transform';
+    componentWrapper.style.cursor = 'grabbing';
+    
+  }, [components, getCanvasCoordinates, handlePointerMove, onSelectComponent]);
 
   // End drag operation
   const handlePointerUp = useCallback((e: PointerEvent) => {
     const dragState = dragStateRef.current;
     
     if (dragState.isDragging && dragState.componentId && dragState.element) {
-      // Get final position from transform
+      // Get final position from stored data
       const finalX = parseInt(dragState.element.dataset.finalX || '0');
       const finalY = parseInt(dragState.element.dataset.finalY || '0');
       
@@ -142,10 +158,15 @@ export const DesignCanvas = ({
         position: { x: finalX, y: finalY }
       });
       
-      // Reset element styles
-      resetDragStyles(dragState.element);
+      // Reset element styles with smooth transition back
+      dragState.element.style.transition = 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)';
+      dragState.element.style.transform = `translate3d(${finalX}px, ${finalY}px, 0) scale(1)`;
+      dragState.element.style.filter = '';
+      dragState.element.style.zIndex = '';
+      dragState.element.style.cursor = '';
+      dragState.element.style.willChange = '';
       
-      // Clean up dataset
+      // Clean up stored position data
       delete dragState.element.dataset.finalX;
       delete dragState.element.dataset.finalY;
     }
@@ -154,8 +175,7 @@ export const DesignCanvas = ({
     dragStateRef.current = {
       isDragging: false,
       componentId: null,
-      startPos: { x: 0, y: 0 },
-      elementOffset: { x: 0, y: 0 },
+      dragOffset: { x: 0, y: 0 },
       element: null
     };
     
@@ -165,12 +185,10 @@ export const DesignCanvas = ({
     document.removeEventListener('pointermove', handlePointerMove);
     document.removeEventListener('pointerup', handlePointerUp);
     
-    // Cleanup performance optimizations
-    cleanup();
-    
     // Restore normal interaction
-    restoreDragInterference();
-  }, [handlePointerMove, onUpdateComponent, cleanup]);
+    document.body.style.userSelect = '';
+    document.body.style.webkitUserSelect = '';
+  }, [handlePointerMove, onUpdateComponent]);
 
   const renderComponent = (component: DesignComponent) => {
     const commonProps = {
@@ -221,9 +239,8 @@ export const DesignCanvas = ({
       {/* Canvas Area */}
       <div 
         ref={canvasRef}
-        data-canvas="true"
         className={cn(
-          "absolute inset-0 top-16 select-none",
+          "absolute inset-0 top-16",
           isDragActive && "cursor-grabbing"
         )}
         onClick={(e) => {
@@ -231,6 +248,7 @@ export const DesignCanvas = ({
             onSelectComponent(null);
           }
         }}
+        style={{ touchAction: 'none' }}
       >
         {/* Grid Pattern */}
         <div 
@@ -253,18 +271,15 @@ export const DesignCanvas = ({
             <div
               key={component.id}
               className={cn(
-                'absolute transition-all duration-300 transform-gpu group',
-                'cursor-grab active:cursor-grabbing',
-                isSelected && !isDragging && 'ring-2 ring-accent ring-offset-2',
-                'hover:shadow-xl hover:shadow-primary/20',
-                !isDragging && 'hover:scale-[1.02]',
-                isDragging && 'scale-110 rotate-2 shadow-2xl'
+                'absolute cursor-grab group select-none',
+                isSelected && !isDragging && 'ring-2 ring-accent ring-offset-2 ring-offset-canvas',
+                isDragging && 'cursor-grabbing',
+                !isDragging && 'transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/20'
               )}
               style={{
-                left: component.position.x,
-                top: component.position.y,
-                zIndex: isSelected ? 20 : 10,
-                touchAction: 'none' // Prevent touch scrolling during drag
+                transform: `translate3d(${component.position.x}px, ${component.position.y}px, 0)`,
+                transformOrigin: 'top left',
+                touchAction: 'none'
               }}
               onPointerDown={(e) => handlePointerDown(e, component.id)}
               onClick={(e) => {
@@ -307,7 +322,7 @@ export const DesignCanvas = ({
               
               {/* Drag Handle Indicator */}
               {isSelected && !isDragging && (
-                <div className="absolute -top-2 -right-2 w-4 h-4 bg-accent rounded-full border-2 border-background animate-bounce-gentle opacity-80" />
+                <div className="absolute -top-2 -right-2 w-4 h-4 bg-accent rounded-full border-2 border-canvas animate-bounce-gentle opacity-80" />
               )}
             </div>
           );
@@ -329,11 +344,6 @@ export const DesignCanvas = ({
               </p>
             </div>
           </div>
-        )}
-        
-        {/* Drag Overlay for Better Performance */}
-        {isDragActive && (
-          <div className="absolute inset-0 bg-transparent z-50 pointer-events-none" />
         )}
       </div>
     </div>
