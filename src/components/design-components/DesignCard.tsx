@@ -49,7 +49,7 @@ export const DesignCard = ({
       getHoverEffectClass(),
       getAnimationClass(),
       'transform-gpu',
-      'pointer-events-none select-none', // Prevent interference with drag system
+      'pointer-events-auto select-none', // Allow hover effects
       'before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-primary/5 before:to-accent/5',
       'before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500'
     )}

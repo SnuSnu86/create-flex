@@ -72,21 +72,46 @@ export const PropertiesPanel = ({ selectedComponent, onUpdateComponent }: Proper
       <Label className="text-xs font-medium">{label}</Label>
       <div className="flex items-center gap-2">
         <div 
-          className="w-8 h-8 rounded border border-border cursor-pointer"
+          className="w-8 h-8 rounded border border-border cursor-pointer relative hover:scale-110 transition-transform"
           style={{ backgroundColor: value || '#8b5cf6' }}
           onClick={() => {
-            const input = document.createElement('input');
-            input.type = 'color';
-            input.value = value || '#8b5cf6';
-            input.onchange = (e) => onChange((e.target as HTMLInputElement).value);
-            input.click();
+            // Create a hidden color input positioned relative to the clicked element
+            const colorInput = document.createElement('input');
+            colorInput.type = 'color';
+            colorInput.value = value || '#8b5cf6';
+            colorInput.style.position = 'absolute';
+            colorInput.style.top = '0';
+            colorInput.style.left = '0';
+            colorInput.style.width = '32px';
+            colorInput.style.height = '32px';
+            colorInput.style.opacity = '0';
+            colorInput.style.cursor = 'pointer';
+            
+            // Append to the color preview div
+            const previewDiv = event?.currentTarget as HTMLElement;
+            if (previewDiv && previewDiv.parentElement) {
+              previewDiv.parentElement.appendChild(colorInput);
+              colorInput.click();
+              
+              colorInput.onchange = (e) => {
+                onChange((e.target as HTMLInputElement).value);
+                colorInput.remove();
+              };
+              
+              // Remove if user clicks away
+              setTimeout(() => {
+                if (colorInput.parentElement) {
+                  colorInput.remove();
+                }
+              }, 5000);
+            }
           }}
         />
         <Input
           value={value || '#8b5cf6'}
           onChange={(e) => onChange(e.target.value)}
           placeholder="#8b5cf6"
-          className="flex-1 h-8 text-xs font-mono"
+          className="flex-1 h-8 text-xs font-mono focus:ring-2 focus:ring-primary"
         />
       </div>
       <Tabs value={colorMode} onValueChange={(v) => setColorMode(v as any)} className="w-full">

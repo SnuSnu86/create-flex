@@ -252,7 +252,6 @@ export const DesignCanvas = ({
               className={cn(
                 'absolute group select-none',
                 isDragging ? 'cursor-grabbing z-50' : 'cursor-grab',
-                isSelected && !isDragging && 'ring-2 ring-accent ring-offset-2 ring-offset-canvas',
                 !isDragging && 'transition-all duration-200 hover:scale-[1.02] hover:shadow-lg'
               )}
               style={{

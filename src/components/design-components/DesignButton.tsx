@@ -67,7 +67,7 @@ export const DesignButton = ({
         'transform-gpu',
         'before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent',
         'before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700',
-        'pointer-events-none select-none', // Prevent interference with drag system
+        'pointer-events-auto select-none', // Allow hover effects
         variantStyles[variant],
         sizeStyles[size],
         disabled && 'opacity-50 hover:scale-100 hover:translate-y-0',

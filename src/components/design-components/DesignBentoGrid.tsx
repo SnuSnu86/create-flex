@@ -80,7 +80,7 @@ export const DesignBentoGrid = ({
     <div 
       className={cn(
         'grid gap-4 transition-all duration-300 will-change-transform',
-        'pointer-events-none select-none' // Prevent interference with drag system
+        'pointer-events-auto select-none' // Allow hover effects
       )}
       style={{ 
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
