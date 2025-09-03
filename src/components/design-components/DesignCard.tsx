@@ -7,23 +7,53 @@ interface DesignCardProps {
   description?: string;
   showImage?: boolean;
   isSelected?: boolean;
+  customStyle?: Record<string, any>;
+  hoverEffect?: string;
+  animation?: string;
 }
 
 export const DesignCard = ({ 
   title = 'Card Title', 
   description = 'This is a beautiful card component with customizable content and styling options.',
   showImage = false,
-  isSelected = false 
+  isSelected = false,
+  customStyle = {},
+  hoverEffect = 'none',
+  animation = 'none'
 }: DesignCardProps) => {
+  const getHoverEffectClass = () => {
+    switch (hoverEffect) {
+      case 'lift': return 'hover:-translate-y-3 hover:shadow-2xl';
+      case 'glow': return 'hover:shadow-glow hover:shadow-primary/30';
+      case 'bounce': return 'hover:animate-bounce-gentle';
+      case 'rotate': return 'hover:rotate-2';
+      case 'scale': return 'hover:scale-105';
+      default: return 'hover:shadow-xl hover:border-accent/30 hover:-translate-y-1';
+    }
+  };
+
+  const getAnimationClass = () => {
+    switch (animation) {
+      case 'pulse': return 'animate-pulse-soft';
+      case 'bounce': return 'animate-bounce-gentle';
+      case 'fade': return 'animate-fade-in';
+      case 'slide': return 'animate-slide-up';
+      case 'zoom': return 'animate-zoom-in';
+      default: return '';
+    }
+  };
+
   return (
     <Card className={cn(
       'bg-gradient-surface border-border/50 backdrop-blur-sm transition-all duration-300 group will-change-transform',
-      'hover:shadow-xl hover:border-accent/30 hover:-translate-y-1 transform-gpu',
-      'hover:rotate-1 hover:scale-[1.02]',
+      getHoverEffectClass(),
+      getAnimationClass(),
+      'transform-gpu',
       'pointer-events-none select-none', // Prevent interference with drag system
       'before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-primary/5 before:to-accent/5',
       'before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500'
     )}
+    style={customStyle}
     >
       {showImage && (
         <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 relative overflow-hidden group-hover:scale-110 transition-transform duration-700">

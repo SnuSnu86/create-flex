@@ -18,6 +18,7 @@ interface DesignBentoGridProps {
   rows?: number;
   items?: BentoItem[];
   isSelected?: boolean;
+  customStyle?: Record<string, any>;
 }
 
 const defaultItems: BentoItem[] = [
@@ -72,7 +73,8 @@ export const DesignBentoGrid = ({
   columns = 3, 
   rows = 2, 
   items = defaultItems,
-  isSelected = false 
+  isSelected = false,
+  customStyle = {}
 }: DesignBentoGridProps) => {
   return (
     <div 
@@ -84,6 +86,7 @@ export const DesignBentoGrid = ({
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
         gridTemplateRows: `repeat(${rows}, 180px)`,
         width: `${columns * 200 + (columns - 1) * 16}px`
+        ...customStyle
       }}
     >
       {items.slice(0, columns * rows).map((item, index) => {
