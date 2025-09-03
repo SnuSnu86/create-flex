@@ -96,17 +96,10 @@ export const DesignCanvas = ({
     const canvasRect = canvasRef.current?.getBoundingClientRect();
     if (!canvasRect) return;
     
-    // Get current component data
-    const component = components.find(comp => comp.id === componentId);
-    if (!component) return;
-    
-    // Calculate mouse position relative to canvas
-    const mouseCanvasX = e.clientX - canvasRect.left;
-    const mouseCanvasY = e.clientY - canvasRect.top;
-    
-    // Calculate offset from mouse to component's position in canvas coordinates
-    const offsetX = mouseCanvasX - component.position.x;
-    const offsetY = mouseCanvasY - component.position.y;
+    // Calculate where within the element the user clicked
+    const elementRect = element.getBoundingClientRect();
+    const offsetX = e.clientX - elementRect.left;
+    const offsetY = e.clientY - elementRect.top;
     
     dragStateRef.current = {
       isDragging: true,
