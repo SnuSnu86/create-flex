@@ -28,12 +28,13 @@ export const DesignCanvas = ({
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (e: React.MouseEvent, componentId: string) => {
-    if (e.target !== e.currentTarget) return;
+    e.preventDefault();
+    e.stopPropagation();
     
     const component = components.find(c => c.id === componentId);
     if (!component) return;
 
-    const rect = e.currentTarget.getBoundingClientRect();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setDragOffset({
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
@@ -135,7 +136,7 @@ export const DesignCanvas = ({
             <div
               key={component.id}
               className={cn(
-                'absolute cursor-move transition-all duration-300 transform-gpu',
+                'absolute cursor-move transition-all duration-300 transform-gpu select-none',
                 selectedComponent === component.id && 'ring-2 ring-accent ring-offset-2 animate-pulse-soft',
                 'hover:shadow-xl hover:shadow-primary/10 hover:scale-105',
                 isDragging && 'scale-110 rotate-2 shadow-2xl z-50'
@@ -145,9 +146,17 @@ export const DesignCanvas = ({
                 top: component.position.y,
                 zIndex: selectedComponent === component.id ? 20 : (isDragging ? 50 : 10)
               }}
-              onMouseDown={(e) => handleMouseDown(e, component.id)}
+              onMouseDown={(e) => {
+                handleMouseDown(e, component.id);
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectComponent(component.id);
+              }}
             >
-              {renderComponent(component)}
+              <div className="pointer-events-none">
+                {renderComponent(component)}
+              </div>
               
               {/* Selection Controls */}
               {selectedComponent === component.id && (

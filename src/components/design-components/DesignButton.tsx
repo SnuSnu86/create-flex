@@ -38,12 +38,17 @@ export const DesignButton = ({
         'before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent',
         'before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700',
         'hover:shadow-lg hover:-translate-y-0.5',
+        'pointer-events-auto cursor-pointer',
         variantStyles[variant],
         sizeStyles[size],
         disabled && 'opacity-50 cursor-not-allowed hover:scale-100 hover:translate-y-0',
         isSelected && 'ring-2 ring-accent ring-offset-2 animate-pulse-soft'
       )}
       disabled={disabled}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
     >
       <span className="relative z-10">{children}</span>
     </Button>

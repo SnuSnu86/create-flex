@@ -78,12 +78,17 @@ export const DesignBentoGrid = ({
     <div 
       className={cn(
         'grid gap-4 transition-all duration-normal',
+        'pointer-events-auto',
         isSelected && 'ring-2 ring-accent ring-offset-2 rounded-lg'
       )}
       style={{ 
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
         gridTemplateRows: `repeat(${rows}, 180px)`,
         width: `${columns * 200 + (columns - 1) * 16}px`
+      }}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
       }}
     >
       {items.slice(0, columns * rows).map((item, index) => {

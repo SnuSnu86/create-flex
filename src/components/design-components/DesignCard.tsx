@@ -20,10 +20,16 @@ export const DesignCard = ({
       'bg-gradient-surface border-border/50 backdrop-blur-sm transition-all duration-normal group',
       'hover:shadow-xl hover:border-accent/30 hover:-translate-y-1 transform-gpu',
       'hover:rotate-1 hover:scale-[1.02] cursor-pointer',
+      'pointer-events-auto',
       'before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-primary/5 before:to-accent/5',
       'before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-500',
       isSelected && 'ring-2 ring-accent ring-offset-2 animate-pulse-soft scale-105 rotate-1'
-    )}>
+    )}
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }}
+    >
       {showImage && (
         <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 relative overflow-hidden group-hover:scale-110 transition-transform duration-700">
           <div className="absolute inset-0 opacity-20" style={{
