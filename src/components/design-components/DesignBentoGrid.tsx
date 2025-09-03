@@ -85,7 +85,7 @@ export const DesignBentoGrid = ({
       style={{ 
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
         gridTemplateRows: `repeat(${rows}, 180px)`,
-        width: `${columns * 200 + (columns - 1) * 16}px`
+        width: `${columns * 200 + (columns - 1) * 16}px`,
         ...customStyle
       }}
     >
